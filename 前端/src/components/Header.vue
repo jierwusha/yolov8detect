@@ -21,7 +21,7 @@
 		   </div>
 		   
 		   <div style="flex: 1;">
-		     <div style="color: #21b3b9; font-weight: bold; font-size: 35px; margin: 0 auto;">{{ msg }}</div>
+		     <div style="color: #21b3b9; font-weight: bold; font-size: 35px; margin: 0 auto;text-align: center;">{{ msg }}</div>
 		   </div>
 		   
 		   <div style="flex: 1;"></div>
@@ -43,7 +43,7 @@ export default {
   name: "Header",
   data() {
     return {
-      msg: "YOLOv8-车牌识别统计系统",
+      msg: "YOLOv8-智慧识别",
       activeMenu: '1' ,
 	  sidebarHidden: false ,// 控制侧边栏的显示和隐藏
 	  rotated:false,
@@ -68,6 +68,18 @@ export default {
 	      },
 		handleMenuSelect(index) {
 		      this.$emit("menuSelect", index);
+			  if(index==1){
+				  this.msg="YOLOv8-智慧识别"
+			  }
+			  if(index==2){
+			  	  this.msg="YOLOv8-验证码识别"
+			  }
+			  if(index==3){
+			  	  this.msg="YOLOv8-车牌识别统计"
+			  }
+			  if(index==4){
+			  		this.msg="YOLOv8-人物识别"
+			  }
 		},
   },
 };

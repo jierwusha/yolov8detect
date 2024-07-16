@@ -30,7 +30,6 @@
 						 <div style="width: 7vw;">模式选择：</div>
 				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange">照片模式</el-radio>
 				       <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange">视频模式</el-radio>
-					   <el-radio v-model="modelSelect" label="3" border size="small" @input="modelSelectChange">文件夹模式</el-radio>
 				     </div>
 					 <transition name="el-zoom-in-top">
 					         <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh" >
@@ -56,7 +55,7 @@
 		
       <div id="CT_image"><!-- 上传图片框 -->
         <el-card id="CT_image_1"  class="box-card"  style=" border-radius: 8px; height: 360px;width: 60vw;margin-bottom: -30px;box-sizing: border-box;">
-		<div style="display: flex;justify-content: space-between;">
+		<div style="display: flex;justify-content: space-between;padding: 0 10vw;">
 			<div class="demo-image__preview1">
 			  <div v-loading="loading" element-loading-text="上传中"  element-loading-spinner="el-icon-loading" >
 			    <el-image :src="url_1" class="image_1" :preview-src-list="srcList" style="border-radius: 3px 3px 0 0" >
@@ -65,10 +64,8 @@
 			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
 			            <div v-if="modelSelect==1">上传图像</div>
 						<div v-if="modelSelect==2">上传视频</div>
-						<div v-if="modelSelect==3">选择文件夹</div>
 			            <input v-if="modelSelect==1" ref="upload" style="display: none" name="file" accept="image/*" type="file" @change="update" />
 						<input v-if="modelSelect==2" ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
-						<input v-if="modelSelect==3" ref="upload" style="display: none" name="file" accept="image/*" type="file" @change="update" />
 			          </el-button>
 			        </div>
 			      </div>
@@ -208,7 +205,7 @@ export default {
     };
   },
   created: function () {
-    document.title = "YOLOv5目标检测WEB端";
+    document.title = "Aminos智慧识别";
   },
   methods: {
 	true_upload() {
@@ -320,7 +317,37 @@ export default {
 		this.srcList1 = [];
 		this.wait_return = "等待上传";
 		this.wait_upload = "等待上传";
-	}
+	},
+	updateFolder(e) {
+      this.folderUrl = "";
+      this.loading = true;
+      this.folderProcessed = false;
+
+      let files = e.target.files;
+      let param = new FormData();
+
+      for (let i = 0; i < files.length; i++) {
+        let file = files[i];
+        param.append("files[]", file, file.name);
+      }
+
+      let config = {
+        headers: { "Content-Type": "multipart/form-data" },
+      };
+
+      axios
+        .post(this.server_url + "/uploadFolder", param, config)
+        .then((response) => {
+          this.folderUrl = response.data.folder_url;
+          this.loading = false;
+          this.folderProcessed = true;
+        })
+        .catch((error) => {
+          console.error(error);
+          this.loading = false;
+          this.folderProcessed = false;
+        });
+    }
   },
 
 
@@ -444,13 +471,13 @@ export default {
 .demo-image__preview1 {
   width: 275px;
   height: 290px;
-  margin: 20px 5vw;
+
 }
 
 .demo-image__preview2 {
   width: 275px;
   height: 290px;
-  margin: 20px 5vw;
+
 
   /* background-color: green; */
 }
