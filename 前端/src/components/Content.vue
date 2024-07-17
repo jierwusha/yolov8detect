@@ -28,8 +28,8 @@
 				 <el-form  style="max-height: 28vh;width: 55vw;" >
 				     <div style="margin-top: 10px;width: 55vw;display: flex;height: 5vh;align-items: center;justify-content: flex-start;">
 						 <div style="width: 7vw;">模式选择：</div>
-				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange" >照片模式</el-radio>
-				      <!-- <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange"  v-if="selectedMenu==3||selectedMenu==4">视频模式</el-radio> -->
+				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange" >验证码识别</el-radio>
+				      <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange"  >车牌号识别</el-radio>
 				     </div>
 					 <transition name="el-zoom-in-top">
 					         <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh" >
@@ -91,7 +91,7 @@
         </el-card>
       </div>
 	  
-      <div id="info_patient"  v-if="modelSelect==1">
+      <div id="info_patient"  >
         <!-- 卡片放置表格 -->
         <el-card style="border-radius: 8px">
           <div slot="header" class="clearfix">

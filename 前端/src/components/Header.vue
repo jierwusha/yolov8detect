@@ -29,9 +29,9 @@
 		<div class="sidebar" :class="{ 'sidebar-hidden': sidebarHidden }">
 			<el-menu :default-active="activeMenu" class="side-nav"  @select="handleMenuSelect">
 			    <el-menu-item index="1">首页</el-menu-item>
-			    <el-menu-item index="2">验证码识别</el-menu-item>
-			    <el-menu-item index="3">车牌识别</el-menu-item>
-				<el-menu-item index="4">人物识别</el-menu-item>
+			    <el-menu-item index="2">照片识别</el-menu-item>
+			    <el-menu-item index="3">视频识别</el-menu-item>
+<!-- 				<el-menu-item index="4">人物识别</el-menu-item> -->
 			  </el-menu>
 		</div>
 		
