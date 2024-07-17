@@ -127,21 +127,24 @@
                 element-loading-spinner="el-icon-loading"
                 lazy
               >
-                <el-table-column label="检测结果" width="300px">
-                  <template slot-scope="scope">
-                    <span>{{ scope.row[2] }}</span>
-                  </template>
-                </el-table-column>
-<!--                <el-table-column label="目标大小" width="300px">
+                <el-table-column label="检测结果" width="400px">
                   <template slot-scope="scope">
                     <span>{{ scope.row[0] }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="置信度" width="300px">
+<!--               <el-table-column label="目标大小" width="300px">
                   <template slot-scope="scope">
-                    <span>{{ scope.row[1] }}</span>
+                    <span>{{ scope.row[0] }}</span>
                   </template>
                 </el-table-column> -->
+                <el-table-column label="复制" width="400px">
+                  <template slot-scope="scope">
+                   <!-- <span>{{ scope.row[1] }}</span> -->
+				   <el-button  type="primary"   class="download_bt"  @click="copy">
+				     <div>复制</div>
+				   </el-button>
+                  </template>
+                </el-table-column>
               </el-table>
 			  
            </el-tab-pane>
@@ -184,7 +187,10 @@ export default {
       textarea: "",
       srcList: [],
       srcList1: [],
-      feature_list: [],
+      feature_list: [{
+						0: '目标1',
+						1:'0.5'
+					  },],
       feature_list_1: [],
       feat_list: [],
       url: "",
@@ -319,6 +325,34 @@ export default {
 		this.srcList1 = [];
 		this.wait_return = "等待上传";
 		this.wait_upload = "等待上传";
+	},
+	copy(e){
+		  const textToCopy = this.feature_list[0][0];
+		  this.copyToClipboard(textToCopy);
+		  console.log('已复制到剪贴板:', textToCopy);
+		  this.$notify({
+		    title: "复制成功："+textToCopy,
+		    duration: 1000,
+		    type: "success",
+		  });
+	},
+	copyToClipboard(text) {
+	  // 创建临时的 <textarea> 元素
+	  const textarea = document.createElement('textarea');
+	  textarea.value = text;
+	  textarea.setAttribute('readonly', '');
+	  textarea.style.position = 'absolute';
+	  textarea.style.left = '-9999px';
+	
+	  // 将 <textarea> 添加到文档中
+	  document.body.appendChild(textarea);
+	
+	  // 选择并复制文本
+	  textarea.select();
+	  document.execCommand('copy');
+	
+	  // 移除临时的 <textarea> 元素
+	  document.body.removeChild(textarea);
 	},
 	updateFolder(e) {
       this.folderUrl = "";
