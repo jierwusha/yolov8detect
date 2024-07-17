@@ -28,8 +28,8 @@
 				 <el-form  style="max-height: 28vh;width: 55vw;" >
 				     <div style="margin-top: 10px;width: 55vw;display: flex;height: 5vh;align-items: center;justify-content: flex-start;">
 						 <div style="width: 7vw;">模式选择：</div>
-				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange" >照片模式</el-radio>
-				      <!-- <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange"  v-if="selectedMenu==3||selectedMenu==4">视频模式</el-radio> -->
+<!-- 				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange">照片模式</el-radio> -->
+				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange">视频模式</el-radio>
 				     </div>
 					 <transition name="el-zoom-in-top">
 					         <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh" >
@@ -62,9 +62,7 @@
 			      <div slot="error">
 			        <div slot="placeholder" class="error">
 			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
-			            <div v-if="modelSelect==1">上传图像</div>
 						<div v-if="modelSelect==2">上传视频</div>
-			            <input v-if="modelSelect==1" ref="upload" style="display: none" name="file" accept="image/*" type="file" @change="update" />
 						<input v-if="modelSelect==2" ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
 			          </el-button>
 			        </div>
@@ -91,63 +89,7 @@
         </el-card>
       </div>
 	  
-      <div id="info_patient"  v-if="modelSelect==1">
-        <!-- 卡片放置表格 -->
-        <el-card style="border-radius: 8px">
-          <div slot="header" class="clearfix">
-            <span>检测目标</span>
-            <el-button
-              style="margin: 35px 35px 0 35px"
-              v-show="!showbutton"
-              type="primary"
-              icon="el-icon-upload"
-              class="download_bt"
-              v-on:click="true_upload2"
-            >
-              重新选择图像
-              <input
-                ref="upload2"
-                style="display: none"
-                name="file"
-                type="file"
-                @change="update"
-              />
-            </el-button>
-          </div>
-          <el-tabs v-model="activeName">
-           <el-tab-pane label="检测到的目标" name="first" style="z-index: 0;">
-              <!-- 表格存放特征值 -->
-              <el-table
-                :data="feature_list"
-                height="390"
-                border
-                style="width: 60vw; text-align: center"
-                v-loading="loading"
-                element-loading-text="数据正在处理中，请耐心等待"
-                element-loading-spinner="el-icon-loading"
-                lazy
-              >
-                <el-table-column label="目标类别" width="300px">
-                  <template slot-scope="scope">
-                    <span>{{ scope.row[2] }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="目标大小" width="300px">
-                  <template slot-scope="scope">
-                    <span>{{ scope.row[0] }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="置信度" width="300px">
-                  <template slot-scope="scope">
-                    <span>{{ scope.row[1] }}</span>
-                  </template>
-                </el-table-column>
-              </el-table>
-			  
-           </el-tab-pane>
-          </el-tabs>
-        </el-card>
-      </div>
+      
 	  
     </div>
   </div>

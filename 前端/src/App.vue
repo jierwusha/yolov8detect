@@ -1,7 +1,8 @@
 <template>
   <div id="app" style="padding: 0;margin: 0;">
     <app-header @menuSelect="handleMenuSelect"></app-header>
-    <app-content :selectedMenu="selectedMenu"></app-content>
+    <app-content :selectedMenu="selectedMenu"   v-if="selectedMenu==2"></app-content>
+	<app-contentVideo :selectedMenu="selectedMenu"  v-if="selectedMenu==3||selectedMenu==4"></app-contentVideo>
     <app-footer></app-footer>
   </div>
 </template>
@@ -10,6 +11,8 @@
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Content from "./components/Content";
+import ContentVideo from "./components/ContentVideo";
+
 export default {
   name: "Aminos智慧识别",
   data() {
@@ -21,6 +24,7 @@ export default {
     "app-header": Header,
     "app-footer": Footer,
     "app-content": Content,
+	"app-contentVideo": ContentVideo,
   },
   methods: {
     handleMenuSelect(index) {
