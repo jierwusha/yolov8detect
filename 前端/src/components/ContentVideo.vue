@@ -62,8 +62,8 @@
 			      <div slot="error">
 			        <div slot="placeholder" class="error">
 			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
-						<div v-if="modelSelect==2">上传视频</div>
-						<input v-if="modelSelect==2" ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
+						<div >上传视频</div>
+						<input  ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
 			          </el-button>
 			        </div>
 			      </div>
@@ -113,7 +113,7 @@ export default {
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
-      server_url: "http://127.0.0.1:5003",
+      server_url: "http://127.0.0.1:5000",
       activeName: "first",
       active: 0,
       centerDialogVisible: true,

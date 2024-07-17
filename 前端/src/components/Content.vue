@@ -127,12 +127,12 @@
                 element-loading-spinner="el-icon-loading"
                 lazy
               >
-                <el-table-column label="目标类别" width="300px">
+                <el-table-column label="检测结果" width="300px">
                   <template slot-scope="scope">
                     <span>{{ scope.row[2] }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="目标大小" width="300px">
+<!--                <el-table-column label="目标大小" width="300px">
                   <template slot-scope="scope">
                     <span>{{ scope.row[0] }}</span>
                   </template>
@@ -141,7 +141,7 @@
                   <template slot-scope="scope">
                     <span>{{ scope.row[1] }}</span>
                   </template>
-                </el-table-column>
+                </el-table-column> -->
               </el-table>
 			  
            </el-tab-pane>
@@ -171,7 +171,7 @@ export default {
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
-      server_url: "http://127.0.0.1:5003",
+      server_url: "http://127.0.0.1:5000",
       activeName: "first",
       active: 0,
       centerDialogVisible: true,
@@ -197,6 +197,7 @@ export default {
       showbutton: true,
       percentage: 0,
       fullscreenLoading: false,
+	  result:"",
       opacitys: {
         opacity: 0,
       },
@@ -258,6 +259,7 @@ export default {
       axios
         .post(this.server_url + "/upload", param, config)
         .then((response) => {
+			console.log(response)
           this.percentage = 100;
           clearInterval(timer);
           this.url_1 = response.data.image_url;
@@ -267,15 +269,15 @@ export default {
           this.fullscreenLoading = false;
           this.loading = false;
 
-          this.feat_list = Object.keys(response.data.image_info);
+          // this.feat_list = Object.keys(response.data.image_info);
 
-          for (var i = 0; i < this.feat_list.length; i++) {
-            response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
-            this.feature_list.push(response.data.image_info[this.feat_list[i]]);
-          }
+          // for (var i = 0; i < this.feat_list.length; i++) {
+          //   response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
+          //   this.feature_list.push(response.data.image_info[this.feat_list[i]]);
+          // }
 
-          this.feature_list.push(response.data.image_info);
-          this.feature_list_1 = this.feature_list[0];
+          // this.feature_list.push(response.data.image_info);
+          // this.feature_list_1 = this.feature_list[0];
           this.dialogTableVisible = false;
           this.percentage = 0;
           this.notice1();
