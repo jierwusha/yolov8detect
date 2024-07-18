@@ -10,7 +10,7 @@
       :center="true"
     >
       <el-progress :percentage="percentage"></el-progress>
-      <span slot="footer" class="dialog-footer">请耐心等待约3秒钟</span>
+      <span slot="footer" class="dialog-footer">请耐心等待约10秒钟</span>
     </el-dialog>
 
     <div id="CT"  style="display: flex; ">
@@ -28,16 +28,17 @@
 				 <el-form  style="max-height: 28vh;width: 55vw;" >
 				     <div style="margin-top: 10px;width: 55vw;display: flex;height: 5vh;align-items: center;justify-content: flex-start;">
 						 <div style="width: 7vw;">模式选择：</div>
-				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange">验证码识别</el-radio>
-				       <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange">车牌号识别</el-radio>
+				       <el-radio v-model="modelSelect" label="code" border size="small" @input="modelSelectChange">验证码识别</el-radio>
+				       <el-radio v-model="modelSelect" label="car" border size="small" @input="modelSelectChange">车牌号识别</el-radio>
 				     </div>
 					 <transition name="el-zoom-in-top">
 					         <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh" >
 					             <div style="width: 7vw;">置信阈值：</div>
-					             <el-slider v-model="value1" :step="10" :max="100" :min="10" style="width: 20vw;" class="amislider" > </el-slider>
+					             <el-slider v-model="value1" :step="0.05" :max="1" :min="0.2" style="width: 20vw;" class="amislider" > </el-slider>
+								 <div style="padding-left: 8px;">{{ value1 }}</div>
 					         </div>
 					 </transition>
-					<transition name="el-zoom-in-top">
+					<!-- <transition name="el-zoom-in-top">
 					       <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh">
 					           <div style="width: 7vw;">22222：</div>
 					           <el-slider v-model="value1" :step="10" :max="100" :min="10" style="width: 20vw;" class="amislider"> </el-slider>
@@ -48,25 +49,31 @@
 					            <div style="width: 7vw;">3333333：</div>
 					            <el-slider v-model="value1" :step="10" :max="100" :min="10" style="width: 20vw;" class="amislider"> </el-slider>
 					        </div>
-					</transition>
+					</transition> -->
 				 </el-form>
 			</el-card>
 		</div>
 		
-      <div id="CT_image"><!-- 上传图片框 -->
+      <div id="CT_image">
         <el-card id="CT_image_1"  class="box-card"  style=" display:flex; 8px; height: 360px;width: 60vw;margin-bottom: -30px;box-sizing: border-box;justify-content: center;align-items: center;">
 		<div style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;">
-			<div class="demo-image__preview2" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;flex-direction: column;">
+			<div id="video-container" class="demo-image__preview2" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;flex-direction: column;">
 			  <div  v-loading="loading"   element-loading-text="处理中,请耐心等待" element-loading-spinner="el-icon-loading" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;">
 					<video
 						id="video1"
-					    :src="url_2"
 						controls
 						style="height: 30vh;width: 30vw;"
 						v-show="uploaded"
+						:src="url_2" 
 					>
 						
 					</video>
+					
+	
+<!-- 					<VidStack
+					  src="https://files.vidstack.io/sprite-fight/720p.mp4"
+					  poster="https://files.vidstack.io/sprite-fight/poster.webp"
+					/> -->
 					<div slot="error" v-show="!uploaded">
 					  <div slot="placeholder" class="error">{{ wait_return }}</div>
 					</div>
@@ -103,8 +110,41 @@
                     />
                   </el-button>
                 </div>
-              </el-card>
-            </div>
+				
+				<el-tabs v-model="activeName">
+				           <el-tab-pane label="检测到的目标" name="first" style="z-index: 0;">
+				              <!-- 表格存放特征值 -->
+				              <el-table
+				                :data="feature_list"
+				                height="390"
+				                border
+				                style="width: 60vw; text-align: center"
+				                v-loading="loading"
+				                element-loading-text="数据正在处理中，请耐心等待"
+				                element-loading-spinner="el-icon-loading"
+				                lazy
+				              >
+				                <el-table-column label="序号" width="350px">
+				                  <template slot-scope="scope">
+				                    <span>{{ scope.row[0] }}</span>
+				                  </template>
+				                </el-table-column>
+				              <el-table-column label="检测结果" width="350px">
+				                  <template slot-scope="scope">
+				                    <span>{{ scope.row[1] }}</span>
+				                  </template>
+				                </el-table-column>
+				                <el-table-column label="时间" width="350px">
+				                  <template slot-scope="scope">
+				                    <span>{{ scope.row[2] }}</span>
+				                  </template>
+				                </el-table-column>
+				              </el-table>
+							  
+				           </el-tab-pane>
+				</el-tabs>
+            </el-card>
+        </div>
 	  
     </div>
   </div>
@@ -123,22 +163,18 @@ export default {
   },
   data() {
     return {
-	  modelSelect: '1',
-	  value1:'',
+	  modelSelect: 'code',
+	  value1:0.6,
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
-	  smallVideo: require("../assets/VIDEO.mp4"),
+	  smallVideo: "",
       server_url: "http://127.0.0.1:5000",
       activeName: "first",
       active: 0,
       centerDialogVisible: true,
       url_1: "",
-	  url_11: "",
-	  url_111: "",
       url_2: "",
-	  url_22: "",
-	  url_222: "",
       textarea: "",
       srcList: [],
       srcList1: [],
@@ -173,14 +209,6 @@ export default {
 	},
     true_upload2() {
       this.$refs.upload2.click();
-	   // const videoPath="../assets/VIDEO.mp4"
-	   // this.url_2=videoPath;
-	 //   const videoElement = this.$refs.videoPlayer;
-	 //    videoElement.src = videoPath;
-	 //    videoElement.load();
-	 //    videoElement.play();
-		// console.log(666666)
-	          // video.play();
     },
     next() {
       this.active++;
@@ -199,62 +227,94 @@ export default {
     },
     // 上传文件
     update(e) {
-	  const file = event.target.files[0];
-	  this.url_2 = URL.createObjectURL(file);
 	  this.uploaded=true;
-      // this.percentage = 0;
-      // this.dialogTableVisible = true;
-      // this.url_1 = "";
-      // this.url_2 = "";
-      // this.srcList = [];
-      // this.srcList1 = [];
-      // this.wait_return = "";
-      // this.wait_upload = "";
-      // this.feature_list = [];
-      // this.feat_list = [];
-      // this.fullscreenLoading = true;
-      // this.loading = true;
-      // this.showbutton = false;
-      // let file = e.target.files[0];
-      // this.url_1 = this.$options.methods.getObjectURL(file);
-      // let param = new FormData(); //创建form对象
-      // param.append("file", file, file.name); //通过append向form对象添加数据
-      // var timer = setInterval(() => {
-      //   this.myFunc();
-      // }, 30);
-      // let config = {
-      //   headers: { "Content-Type": "multipart/form-data" },
-      // }; //添加请求头
-      // axios
-      //   .post(this.server_url + "/upload", param, config)
-      //   .then((response) => {
-      //     this.percentage = 100;
-      //     clearInterval(timer);
-      //     this.url_1 = response.data.image_url;
-      //     this.srcList.push(this.url_1);
-      //     this.url_2 = response.data.draw_url;
-      //     this.srcList1.push(this.url_2);
-      //     this.fullscreenLoading = false;
-      //     this.loading = false;
+	  
+      this.percentage = 0;
+      this.dialogTableVisible = true;
+      this.url_1 = "";
+      this.url_2 = "";
+      this.srcList = [];
+      this.srcList1 = [];
+      this.wait_return = "";
+      this.wait_upload = "";
+      this.feature_list = [];
+      this.feat_list = [];
+      this.fullscreenLoading = true;
+      this.loading = true;
+      this.showbutton = false;
+      let file = e.target.files[0];
+      this.url_1 = this.$options.methods.getObjectURL(file);
+		let formData = new FormData();
+		formData.append('file', file,file.name);
+		formData.append('mode',this.modelSelect);
+		formData.append('conf', this.value1);
+      var timer = setInterval(() => {
+        this.myFunc();
+      }, 500);
+      let config = {
+        headers: { "Content-Type": "multipart/form-data" },
+      }; //添加请求头
+      axios
+        .post(this.server_url + "/upload_video", formData, config)
+        .then((response) => {
+			console.log(response)
+          this.percentage = 100;
+          clearInterval(timer);
+          this.url_1 = response.data.video_url;
+          this.srcList.push(this.url_1);
+          this.url_2 = response.data.draw_url ;
+		  this.downloadFile(this.url_2);
+          this.srcList1.push(this.url_2);
+          this.fullscreenLoading = false;
+          this.loading = false;
+		  console.log(this.url_2)
+		  this.feature_list=response.data.result_info
+		  // const videoElement = document.getElementById('video1');
+		  //   videoElement.src = this.url_2;
+          // this.feat_list = Object.keys(response.data.image_info);
 
-      //     this.feat_list = Object.keys(response.data.image_info);
+          // for (var i = 0; i < this.feat_list.length; i++) {
+          //   response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
+          //   this.feature_list.push(response.data.image_info[this.feat_list[i]]);
+          // }
 
-      //     for (var i = 0; i < this.feat_list.length; i++) {
-      //       response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
-      //       this.feature_list.push(response.data.image_info[this.feat_list[i]]);
-      //     }
-
-      //     this.feature_list.push(response.data.image_info);
-      //     this.feature_list_1 = this.feature_list[0];
-      //     this.dialogTableVisible = false;
-      //     this.percentage = 0;
-      //     this.notice1();
-      //   });
+          // this.feature_list.push(response.data.image_info);
+          // this.feature_list_1 = this.feature_list[0];
+          this.dialogTableVisible = false;
+          this.percentage = 0;
+          this.notice1();
+        });
 
     },
+	  downloadFile(e) {
+			const url = e;
+			const videoId = "video1";
+			console.log(url)
+			fetch(url)
+			  .then(response => response.blob())
+			  .then(blob => {
+			    const video = document.createElement("video");
+			    video.src = URL.createObjectURL(blob);
+			    video.id = videoId;
+			    video.controls = true;
+			    video.style.height = "30vh";
+			    video.style.width = "30vw";
+
+			
+			    const existingVideo = document.getElementById(videoId);
+			    if (existingVideo) {
+			      existingVideo.parentNode.replaceChild(video, existingVideo);
+			    } else {
+			      document.getElementById("video-container").appendChild(video);
+			    }
+			  })
+			  .catch(error => {
+			    console.error("获取文件失败:", error);
+			  });
+	  },
     myFunc() {
-      if (this.percentage + 33 < 99) {
-        this.percentage = this.percentage + 33;
+      if (this.percentage + 10 < 99) {
+		this.percentage = this.percentage + 10;
       } else {
         this.percentage = 99;
       }
@@ -263,8 +323,8 @@ export default {
     notice1() {
       this.$notify({
         title: "预测成功",
-        message: "点击图片可以查看大图",
-        duration: 0,
+        message: "点击视频即可播放",
+        duration: 1500,
         type: "success",
       });
     },
@@ -280,7 +340,9 @@ export default {
 	                });
 	},
 	modelSelectChange(){
-		this.uploaded=false;
+		const videoElement = document.getElementById("video1");
+		const parentElement = videoElement.parentNode;
+		parentElement.removeChild(videoElement);
 		this.url_1="";
 		this.url_2="";
 		this.showbutton=true;
@@ -291,7 +353,7 @@ export default {
 		this.wait_upload = "等待上传";
 	},
 	updateFolder(e) {
-      this.folderUrl = "";
+      this.folderUrl = e;
       this.loading = true;
       this.folderProcessed = false;
 

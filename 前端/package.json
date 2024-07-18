@@ -16,6 +16,7 @@
     "vue": "^2.6.12",
     "vue-codemirror": "^4.0.6",
     "vue-router": "^3.5.1",
+    "vue-video-player": "^6.0.0",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
@@ -25,6 +26,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.2.3",
+    "vidstack": "^1.11.29",
     "vue-cli-plugin-element": "^1.0.1",
     "vue-template-compiler": "^2.6.12"
   },

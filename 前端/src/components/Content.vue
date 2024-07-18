@@ -28,16 +28,17 @@
 				 <el-form  style="max-height: 28vh;width: 55vw;" >
 				     <div style="margin-top: 10px;width: 55vw;display: flex;height: 5vh;align-items: center;justify-content: flex-start;">
 						 <div style="width: 7vw;">模式选择：</div>
-				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange" >验证码识别</el-radio>
-				      <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange"  >车牌号识别</el-radio>
+				       <el-radio v-model="modelSelect" label="code" border size="small" @input="modelSelectChange" >验证码识别</el-radio>
+				      <el-radio v-model="modelSelect" label="car" border size="small" @input="modelSelectChange"  >车牌号识别</el-radio>
 				     </div>
 					 <transition name="el-zoom-in-top">
 					         <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh" >
 					             <div style="width: 7vw;">置信阈值：</div>
-					             <el-slider v-model="value1" :step="10" :max="100" :min="10" style="width: 20vw;" class="amislider" > </el-slider>
+					             <el-slider v-model="value1" :step="0.05" :max="1" :min="0" style="width: 20vw;" class="amislider" > </el-slider>
+								  <div style="padding-left: 8px;">{{ value1 }}</div>
 					         </div>
 					 </transition>
-					<transition name="el-zoom-in-top">
+<!-- 					<transition name="el-zoom-in-top">
 					       <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh">
 					           <div style="width: 7vw;">22222：</div>
 					           <el-slider v-model="value1" :step="10" :max="100" :min="10" style="width: 20vw;" class="amislider"> </el-slider>
@@ -48,7 +49,7 @@
 					            <div style="width: 7vw;">3333333：</div>
 					            <el-slider v-model="value1" :step="10" :max="100" :min="10" style="width: 20vw;" class="amislider"> </el-slider>
 					        </div>
-					</transition>
+					</transition> -->
 				 </el-form>
 			</el-card>
 		</div>
@@ -63,8 +64,7 @@
 			        <div slot="placeholder" class="error">
 			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
 			            <div>上传图像</div>
-			            <input v-if="modelSelect==1" ref="upload" style="display: none" name="file" accept="image/*" type="file" @change="update" />
-						<input v-if="modelSelect==2" ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
+			            <input  ref="upload" style="display: none" name="file" accept="image/*" type="file" @change="update" />
 			          </el-button>
 			        </div>
 			      </div>
@@ -109,6 +109,7 @@
                 style="display: none"
                 name="file"
                 type="file"
+				accept="image/*"
                 @change="update"
               />
             </el-button>
@@ -168,8 +169,8 @@ export default {
   },
   data() {
     return {
-	  modelSelect: '1',
-	  value1:'',
+	  modelSelect: 'code',
+	  value1:0.6,
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
@@ -186,10 +187,7 @@ export default {
       textarea: "",
       srcList: [],
       srcList1: [],
-      feature_list: [{
-						0: '目标1',
-						1:'0.5'
-					  },],
+      feature_list: [],
       feature_list_1: [],
       feat_list: [],
       url: "",
@@ -216,7 +214,6 @@ export default {
   methods: {
 	true_upload() {
 	  this.$refs.upload.click();
-	 
 	},
     true_upload2() {
       this.$refs.upload2.click();
@@ -238,6 +235,7 @@ export default {
     },
     // 上传文件
     update(e) {
+		console.log(666666)
       this.percentage = 0;
       this.dialogTableVisible = true;
       this.url_1 = "";
@@ -246,31 +244,29 @@ export default {
       this.srcList1 = [];
       this.wait_return = "";
       this.wait_upload = "";
-      this.feature_list = [];
+      this.feature_list= [{
+      				 0: '目标1',
+      			},],
       this.feat_list = [];
       this.fullscreenLoading = true;
       this.loading = true;
       this.showbutton = false;
       let file = e.target.files[0];
       this.url_1 = this.$options.methods.getObjectURL(file);
-      // let param = new FormData(); //创建form对象
-      // param.append("file", file, file.name); //通过append向form对象添加数据
-	  
 	  let formData = new FormData();
 	  formData.append('file', file,file.name);
-	  formData.append('mode', 1);
-	  formData.append('conf', 0.1);
+	  formData.append('mode',this.modelSelect);
+	  formData.append('conf', this.value1);
       var timer = setInterval(() => {
         this.myFunc();
-      }, 30);
+      }, 300);
       let config = {
         headers: { "Content-Type": "multipart/form-data" },
       }; //添加请求头
-	  
       axios
         .post(this.server_url + "/upload", formData, config)
         .then((response) => {
-			console.log(response)
+			// console.log(response)
           this.percentage = 100;
           clearInterval(timer);
           this.url_1 = response.data.image_url;
@@ -279,19 +275,15 @@ export default {
           this.srcList1.push(this.url_2);
           this.fullscreenLoading = false;
           this.loading = false;
-
-          // this.feat_list = Object.keys(response.data.image_info);
-
-          // for (var i = 0; i < this.feat_list.length; i++) {
-          //   response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
-          //   this.feature_list.push(response.data.image_info[this.feat_list[i]]);
-          // }
-
-          // this.feature_list.push(response.data.image_info);
-          // this.feature_list_1 = this.feature_list[0];
+		  this.feature_list[0][0]=response.data.image_info
+		  if(!response.data.image_info){
+			  this.feature_list=[]
+		  }
           this.dialogTableVisible = false;
           this.percentage = 0;
           this.notice1();
+		  // 清空文件
+		  this.$refs.upload2.value = null;
         });
     },
     myFunc() {
@@ -306,7 +298,7 @@ export default {
       this.$notify({
         title: "预测成功",
         message: "点击图片可以查看大图",
-        duration: 0,
+        duration: 1000,
         type: "success",
       });
     },
@@ -317,7 +309,6 @@ export default {
 	                  wrcWindowMode: true,
 					  //enableWebRtc:false,
 	                  completeCallback: ({base64, cutInfo}) => {
-	                    console.log(base64, cutInfo);
 	                  },
 	                });
 	},
@@ -334,7 +325,6 @@ export default {
 	copy(e){
 		  const textToCopy = this.feature_list[0][0];
 		  this.copyToClipboard(textToCopy);
-		  console.log('已复制到剪贴板:', textToCopy);
 		  this.$notify({
 		    title: "复制成功："+textToCopy,
 		    duration: 1000,

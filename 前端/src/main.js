@@ -12,6 +12,8 @@ import '../node_modules/element-ui/lib/theme-chalk/index.css'
 import '../src/assets/style.css'
 import './theme/index.css'
 
+
+
 Vue.use(Element)
 Vue.config.productionTip = false
 Vue.use(VueRouter)
