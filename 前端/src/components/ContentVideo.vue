@@ -14,7 +14,7 @@
     </el-dialog>
 
     <div id="CT"  style="display: flex; ">
-		
+
 		<div class="setParam">  <!-- 参数配置框 -->
 			<el-card class="setParam-card"> 
 				<div style="font-weight: bold;color: #21B3B9;font-size: 20px;display: flex;align-items: center;justify-content: space-between;">
@@ -28,8 +28,8 @@
 				 <el-form  style="max-height: 28vh;width: 55vw;" >
 				     <div style="margin-top: 10px;width: 55vw;display: flex;height: 5vh;align-items: center;justify-content: flex-start;">
 						 <div style="width: 7vw;">模式选择：</div>
-<!-- 				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange">照片模式</el-radio> -->
-				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange">视频模式</el-radio>
+				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange">验证码识别</el-radio>
+				       <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange">车牌号识别</el-radio>
 				     </div>
 					 <transition name="el-zoom-in-top">
 					         <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh" >
@@ -54,35 +54,25 @@
 		</div>
 		
       <div id="CT_image"><!-- 上传图片框 -->
-        <el-card id="CT_image_1"  class="box-card"  style=" border-radius: 8px; height: 360px;width: 60vw;margin-bottom: -30px;box-sizing: border-box;">
-		<div style="display: flex;justify-content: space-between;padding: 0 10vw;">
-			<div class="demo-image__preview1">
-			  <div v-loading="loading" element-loading-text="上传中"  element-loading-spinner="el-icon-loading" >
-			    <el-image :src="url_1" class="image_1" :preview-src-list="srcList" style="border-radius: 3px 3px 0 0" >
-			      <div slot="error">
-			        <div slot="placeholder" class="error">
-			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
-						<div v-if="modelSelect==2">上传视频</div>
-						<input v-if="modelSelect==2" ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
-			          </el-button>
-			        </div>
-			      </div>
-			    </el-image>
+        <el-card id="CT_image_1"  class="box-card"  style=" display:flex; 8px; height: 360px;width: 60vw;margin-bottom: -30px;box-sizing: border-box;justify-content: center;align-items: center;">
+		<div style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;">
+			<div class="demo-image__preview2" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;flex-direction: column;">
+			  <div  v-loading="loading"   element-loading-text="处理中,请耐心等待" element-loading-spinner="el-icon-loading" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;">
+					<video
+						id="video1"
+					    :src="url_2"
+						controls
+						style="height: 30vh;width: 30vw;"
+						v-show="uploaded"
+					>
+						
+					</video>
+					<div slot="error" v-show="!uploaded">
+					  <div slot="placeholder" class="error">{{ wait_return }}</div>
+					</div>
 			  </div>
-			  <div class="img_info_1" style="border-radius: 0 0 5px 5px">
-			    <span style="color: white; letter-spacing: 6px">原始素材</span>
-			  </div>
-			</div>
-			<div class="demo-image__preview2">
-			  <div  v-loading="loading"   element-loading-text="处理中,请耐心等待" element-loading-spinner="el-icon-loading">
-			    <el-image  :src="url_2"  class="image_1" :preview-src-list="srcList1" style="border-radius: 3px 3px 0 0"  >
-			      <div slot="error">
-			        <div slot="placeholder" class="error">{{ wait_return }}</div>
-			      </div>
-			    </el-image>
-			  </div>
-			  <div class="img_info_1" style="border-radius: 0 0 5px 5px">
-			    <span style="color: white; letter-spacing: 4px">检测结果</span>
+			  <div class="img_info_1" style="border-radius: 0 0 5px 5px;width: 30vw;">
+			    <span style="color: white; letter-spacing: 4px;width: 30vw;">检测结果</span>
 			  </div>
 			</div>
 		</div>
@@ -90,6 +80,31 @@
       </div>
 	  
       
+            <div id="info_patient"  >
+              <!-- 卡片放置表格 -->
+              <el-card style="border-radius: 8px">
+                <div slot="header" class="clearfix">
+                  <span>检测目标</span>
+                  <el-button
+                    style="margin: 35px 35px 0 35px"
+                    type="primary"
+                    icon="el-icon-upload"
+                    class="download_bt"
+                    v-on:click="true_upload2"
+                  >
+                    选择视频
+                    <input
+                      ref="upload2"
+                      style="display: none"
+                      name="file"
+                      type="file"
+					  accept="video/*"
+                      @change="update"
+                    />
+                  </el-button>
+                </div>
+              </el-card>
+            </div>
 	  
     </div>
   </div>
@@ -113,7 +128,8 @@ export default {
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
-      server_url: "http://127.0.0.1:5003",
+	  smallVideo: require("../assets/VIDEO.mp4"),
+      server_url: "http://127.0.0.1:5000",
       activeName: "first",
       active: 0,
       centerDialogVisible: true,
@@ -144,6 +160,7 @@ export default {
       },
       dialogTableVisible: false,
 	  screenShotHandler:'',
+	  uploaded:false,
     };
   },
   created: function () {
@@ -156,6 +173,14 @@ export default {
 	},
     true_upload2() {
       this.$refs.upload2.click();
+	   // const videoPath="../assets/VIDEO.mp4"
+	   // this.url_2=videoPath;
+	 //   const videoElement = this.$refs.videoPlayer;
+	 //    videoElement.src = videoPath;
+	 //    videoElement.load();
+	 //    videoElement.play();
+		// console.log(666666)
+	          // video.play();
     },
     next() {
       this.active++;
@@ -174,54 +199,58 @@ export default {
     },
     // 上传文件
     update(e) {
-      this.percentage = 0;
-      this.dialogTableVisible = true;
-      this.url_1 = "";
-      this.url_2 = "";
-      this.srcList = [];
-      this.srcList1 = [];
-      this.wait_return = "";
-      this.wait_upload = "";
-      this.feature_list = [];
-      this.feat_list = [];
-      this.fullscreenLoading = true;
-      this.loading = true;
-      this.showbutton = false;
-      let file = e.target.files[0];
-      this.url_1 = this.$options.methods.getObjectURL(file);
-      let param = new FormData(); //创建form对象
-      param.append("file", file, file.name); //通过append向form对象添加数据
-      var timer = setInterval(() => {
-        this.myFunc();
-      }, 30);
-      let config = {
-        headers: { "Content-Type": "multipart/form-data" },
-      }; //添加请求头
-      axios
-        .post(this.server_url + "/upload", param, config)
-        .then((response) => {
-          this.percentage = 100;
-          clearInterval(timer);
-          this.url_1 = response.data.image_url;
-          this.srcList.push(this.url_1);
-          this.url_2 = response.data.draw_url;
-          this.srcList1.push(this.url_2);
-          this.fullscreenLoading = false;
-          this.loading = false;
+	  const file = event.target.files[0];
+	  this.url_2 = URL.createObjectURL(file);
+	  this.uploaded=true;
+      // this.percentage = 0;
+      // this.dialogTableVisible = true;
+      // this.url_1 = "";
+      // this.url_2 = "";
+      // this.srcList = [];
+      // this.srcList1 = [];
+      // this.wait_return = "";
+      // this.wait_upload = "";
+      // this.feature_list = [];
+      // this.feat_list = [];
+      // this.fullscreenLoading = true;
+      // this.loading = true;
+      // this.showbutton = false;
+      // let file = e.target.files[0];
+      // this.url_1 = this.$options.methods.getObjectURL(file);
+      // let param = new FormData(); //创建form对象
+      // param.append("file", file, file.name); //通过append向form对象添加数据
+      // var timer = setInterval(() => {
+      //   this.myFunc();
+      // }, 30);
+      // let config = {
+      //   headers: { "Content-Type": "multipart/form-data" },
+      // }; //添加请求头
+      // axios
+      //   .post(this.server_url + "/upload", param, config)
+      //   .then((response) => {
+      //     this.percentage = 100;
+      //     clearInterval(timer);
+      //     this.url_1 = response.data.image_url;
+      //     this.srcList.push(this.url_1);
+      //     this.url_2 = response.data.draw_url;
+      //     this.srcList1.push(this.url_2);
+      //     this.fullscreenLoading = false;
+      //     this.loading = false;
 
-          this.feat_list = Object.keys(response.data.image_info);
+      //     this.feat_list = Object.keys(response.data.image_info);
 
-          for (var i = 0; i < this.feat_list.length; i++) {
-            response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
-            this.feature_list.push(response.data.image_info[this.feat_list[i]]);
-          }
+      //     for (var i = 0; i < this.feat_list.length; i++) {
+      //       response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
+      //       this.feature_list.push(response.data.image_info[this.feat_list[i]]);
+      //     }
 
-          this.feature_list.push(response.data.image_info);
-          this.feature_list_1 = this.feature_list[0];
-          this.dialogTableVisible = false;
-          this.percentage = 0;
-          this.notice1();
-        });
+      //     this.feature_list.push(response.data.image_info);
+      //     this.feature_list_1 = this.feature_list[0];
+      //     this.dialogTableVisible = false;
+      //     this.percentage = 0;
+      //     this.notice1();
+      //   });
+
     },
     myFunc() {
       if (this.percentage + 33 < 99) {
@@ -251,6 +280,7 @@ export default {
 	                });
 	},
 	modelSelectChange(){
+		this.uploaded=false;
 		this.url_1="";
 		this.url_2="";
 		this.showbutton=true;
@@ -355,7 +385,7 @@ export default {
 }
 
 .box-card {
-  width: 680px;
+  width: 100%;
   height: 200px;
   border-radius: 8px;
   margin-top: -20px;
@@ -398,7 +428,6 @@ export default {
 .image_1 {
   width: 275px;
   height: 260px;
-  background: #ffffff;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -425,10 +454,12 @@ export default {
 }
 
 .error {
-  margin: 100px auto;
-  width: 50%;
-  padding: 10px;
-  text-align: center;
+   display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 30vh;
+      width: 30vw;
 }
 
 .block-sidebar {
@@ -563,7 +594,33 @@ div {
 .amislider{
 	z-index: 0;
 }
+.small-video-container::before {
+    content: "";
+    position: absolute;
+    top: -0.5vw;
+    left: -0.5vw;
+    width: calc(100% + 1vw);
+    height: calc(100% + 1vw);
+    background: linear-gradient(45deg, #f9f9f9, #e5e5e5);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
 
+.small-video-container:hover {
+    box-shadow: 0 0 2vw rgba(0, 0, 0, 0.4);
+}
+
+.small-video-container:hover::before {
+    opacity: 1;
+}
+
+.small-video-container video {
+    height: 30vh;
+	width:40vw;
+    display: flex;
+    background-color: #f2f2f2;
+}
 </style>
 
 

@@ -28,8 +28,8 @@
 				 <el-form  style="max-height: 28vh;width: 55vw;" >
 				     <div style="margin-top: 10px;width: 55vw;display: flex;height: 5vh;align-items: center;justify-content: flex-start;">
 						 <div style="width: 7vw;">模式选择：</div>
-				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange" >照片模式</el-radio>
-				      <!-- <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange"  v-if="selectedMenu==3||selectedMenu==4">视频模式</el-radio> -->
+				       <el-radio v-model="modelSelect" label="1" border size="small" @input="modelSelectChange" >验证码识别</el-radio>
+				      <el-radio v-model="modelSelect" label="2" border size="small" @input="modelSelectChange"  >车牌号识别</el-radio>
 				     </div>
 					 <transition name="el-zoom-in-top">
 					         <div v-if="isBrief" style="display: flex;width: 55vw;align-items: center;justify-content: flex-start;height: 5vh" >
@@ -62,8 +62,7 @@
 			      <div slot="error">
 			        <div slot="placeholder" class="error">
 			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
-			            <div v-if="modelSelect==1">上传图像</div>
-						<div v-if="modelSelect==2">上传视频</div>
+			            <div>上传图像</div>
 			            <input v-if="modelSelect==1" ref="upload" style="display: none" name="file" accept="image/*" type="file" @change="update" />
 						<input v-if="modelSelect==2" ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
 			          </el-button>
@@ -91,7 +90,7 @@
         </el-card>
       </div>
 	  
-      <div id="info_patient"  v-if="modelSelect==1">
+      <div id="info_patient"  >
         <!-- 卡片放置表格 -->
         <el-card style="border-radius: 8px">
           <div slot="header" class="clearfix">
@@ -127,19 +126,22 @@
                 element-loading-spinner="el-icon-loading"
                 lazy
               >
-                <el-table-column label="目标类别" width="300px">
-                  <template slot-scope="scope">
-                    <span>{{ scope.row[2] }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="目标大小" width="300px">
+                <el-table-column label="检测结果" width="400px">
                   <template slot-scope="scope">
                     <span>{{ scope.row[0] }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="置信度" width="300px">
+<!--               <el-table-column label="目标大小" width="300px">
                   <template slot-scope="scope">
-                    <span>{{ scope.row[1] }}</span>
+                    <span>{{ scope.row[0] }}</span>
+                  </template>
+                </el-table-column> -->
+                <el-table-column label="复制" width="400px">
+                  <template slot-scope="scope">
+                   <!-- <span>{{ scope.row[1] }}</span> -->
+				   <el-button  type="primary"   class="download_bt"  @click="copy">
+				     <div>复制</div>
+				   </el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -171,7 +173,7 @@ export default {
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
-      server_url: "http://127.0.0.1:5003",
+      server_url: "http://127.0.0.1:5000",
       activeName: "first",
       active: 0,
       centerDialogVisible: true,
@@ -184,7 +186,10 @@ export default {
       textarea: "",
       srcList: [],
       srcList1: [],
-      feature_list: [],
+      feature_list: [{
+						0: '目标1',
+						1:'0.5'
+					  },],
       feature_list_1: [],
       feat_list: [],
       url: "",
@@ -197,6 +202,7 @@ export default {
       showbutton: true,
       percentage: 0,
       fullscreenLoading: false,
+	  result:"",
       opacitys: {
         opacity: 0,
       },
@@ -247,17 +253,24 @@ export default {
       this.showbutton = false;
       let file = e.target.files[0];
       this.url_1 = this.$options.methods.getObjectURL(file);
-      let param = new FormData(); //创建form对象
-      param.append("file", file, file.name); //通过append向form对象添加数据
+      // let param = new FormData(); //创建form对象
+      // param.append("file", file, file.name); //通过append向form对象添加数据
+	  
+	  let formData = new FormData();
+	  formData.append('file', file,file.name);
+	  formData.append('mode', 1);
+	  formData.append('conf', 0.1);
       var timer = setInterval(() => {
         this.myFunc();
       }, 30);
       let config = {
         headers: { "Content-Type": "multipart/form-data" },
       }; //添加请求头
+	  
       axios
-        .post(this.server_url + "/upload", param, config)
+        .post(this.server_url + "/upload", formData, config)
         .then((response) => {
+			console.log(response)
           this.percentage = 100;
           clearInterval(timer);
           this.url_1 = response.data.image_url;
@@ -267,15 +280,15 @@ export default {
           this.fullscreenLoading = false;
           this.loading = false;
 
-          this.feat_list = Object.keys(response.data.image_info);
+          // this.feat_list = Object.keys(response.data.image_info);
 
-          for (var i = 0; i < this.feat_list.length; i++) {
-            response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
-            this.feature_list.push(response.data.image_info[this.feat_list[i]]);
-          }
+          // for (var i = 0; i < this.feat_list.length; i++) {
+          //   response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
+          //   this.feature_list.push(response.data.image_info[this.feat_list[i]]);
+          // }
 
-          this.feature_list.push(response.data.image_info);
-          this.feature_list_1 = this.feature_list[0];
+          // this.feature_list.push(response.data.image_info);
+          // this.feature_list_1 = this.feature_list[0];
           this.dialogTableVisible = false;
           this.percentage = 0;
           this.notice1();
@@ -317,6 +330,34 @@ export default {
 		this.srcList1 = [];
 		this.wait_return = "等待上传";
 		this.wait_upload = "等待上传";
+	},
+	copy(e){
+		  const textToCopy = this.feature_list[0][0];
+		  this.copyToClipboard(textToCopy);
+		  console.log('已复制到剪贴板:', textToCopy);
+		  this.$notify({
+		    title: "复制成功："+textToCopy,
+		    duration: 1000,
+		    type: "success",
+		  });
+	},
+	copyToClipboard(text) {
+	  // 创建临时的 <textarea> 元素
+	  const textarea = document.createElement('textarea');
+	  textarea.value = text;
+	  textarea.setAttribute('readonly', '');
+	  textarea.style.position = 'absolute';
+	  textarea.style.left = '-9999px';
+	
+	  // 将 <textarea> 添加到文档中
+	  document.body.appendChild(textarea);
+	
+	  // 选择并复制文本
+	  textarea.select();
+	  document.execCommand('copy');
+	
+	  // 移除临时的 <textarea> 元素
+	  document.body.removeChild(textarea);
 	},
 	updateFolder(e) {
       this.folderUrl = "";
