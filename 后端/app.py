@@ -62,15 +62,16 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     # 获取JSON数据
-    data = request.json
+    data = request.files
     # 获取特定参数
     mode = data.get('mode')
+    print(mode)
     conf = data.get('conf')
     if 'file' not in request.files:
         return jsonify({'status': 0,
                         'error': 'No file part'})
 
-    file = request.files['file']
+    file = request.files.get('file')
 
     if file and allowed_file(file.filename):
         mime_type, _ = mimetypes.guess_type(file.filename)
@@ -85,12 +86,12 @@ def upload_file():
 
         src_path = os.path.join(folder, file.filename)
         save_path = os.path.join(app.config['SAVE_FOLDER'], file.filename)
-        if mode == 'code':
+        if mode == 1:
             model_path = os.path.join(app.config['MODEL_PATH'], 'code.pt')
-        elif mode == 'car':
+        elif mode == 2:
             model_path = os.path.join(app.config['MODEL_PATH'], 'car.pt')
         else:
-            model_path = os.path.join(app.config['MODEL_PATH'], 'yolo.pt')
+            model_path = os.path.join(app.config['MODEL_PATH'], 'code.pt')
         file.save(src_path)
 
         # 调用核心处理功能

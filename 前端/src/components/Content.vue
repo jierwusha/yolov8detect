@@ -253,16 +253,22 @@ export default {
       this.showbutton = false;
       let file = e.target.files[0];
       this.url_1 = this.$options.methods.getObjectURL(file);
-      let param = new FormData(); //创建form对象
-      param.append("file", file, file.name); //通过append向form对象添加数据
+      // let param = new FormData(); //创建form对象
+      // param.append("file", file, file.name); //通过append向form对象添加数据
+	  
+	  let formData = new FormData();
+	  formData.append('file', file,file.name);
+	  formData.append('mode', 1);
+	  formData.append('conf', 0.1);
       var timer = setInterval(() => {
         this.myFunc();
       }, 30);
       let config = {
         headers: { "Content-Type": "multipart/form-data" },
       }; //添加请求头
+	  
       axios
-        .post(this.server_url + "/upload", param, config)
+        .post(this.server_url + "/upload", formData, config)
         .then((response) => {
 			console.log(response)
           this.percentage = 100;

@@ -59,10 +59,17 @@
 			<div class="demo-image__preview2" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;flex-direction: column;">
 			  <div  v-loading="loading"   element-loading-text="处理中,请耐心等待" element-loading-spinner="el-icon-loading" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;">
 					<video
-					    :src="smallVideo"
+						id="video1"
+					    :src="url_2"
 						controls
-						style="background-color: transparent;height: 30vh;width: 30vw;"
-					></video>
+						style="height: 30vh;width: 30vw;"
+						v-show="uploaded"
+					>
+						
+					</video>
+					<div slot="error" v-show="!uploaded">
+					  <div slot="placeholder" class="error">{{ wait_return }}</div>
+					</div>
 			  </div>
 			  <div class="img_info_1" style="border-radius: 0 0 5px 5px;width: 30vw;">
 			    <span style="color: white; letter-spacing: 4px;width: 30vw;">检测结果</span>
@@ -91,6 +98,7 @@
                       style="display: none"
                       name="file"
                       type="file"
+					  accept="video/*"
                       @change="update"
                     />
                   </el-button>
@@ -120,7 +128,7 @@ export default {
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
-	  smallVideo: require('../assets/lung.mp4'),
+	  smallVideo: require("../assets/VIDEO.mp4"),
       server_url: "http://127.0.0.1:5000",
       activeName: "first",
       active: 0,
@@ -152,6 +160,7 @@ export default {
       },
       dialogTableVisible: false,
 	  screenShotHandler:'',
+	  uploaded:false,
     };
   },
   created: function () {
@@ -164,6 +173,14 @@ export default {
 	},
     true_upload2() {
       this.$refs.upload2.click();
+	   // const videoPath="../assets/VIDEO.mp4"
+	   // this.url_2=videoPath;
+	 //   const videoElement = this.$refs.videoPlayer;
+	 //    videoElement.src = videoPath;
+	 //    videoElement.load();
+	 //    videoElement.play();
+		// console.log(666666)
+	          // video.play();
     },
     next() {
       this.active++;
@@ -182,54 +199,58 @@ export default {
     },
     // 上传文件
     update(e) {
-      this.percentage = 0;
-      this.dialogTableVisible = true;
-      this.url_1 = "";
-      this.url_2 = "";
-      this.srcList = [];
-      this.srcList1 = [];
-      this.wait_return = "";
-      this.wait_upload = "";
-      this.feature_list = [];
-      this.feat_list = [];
-      this.fullscreenLoading = true;
-      this.loading = true;
-      this.showbutton = false;
-      let file = e.target.files[0];
-      this.url_1 = this.$options.methods.getObjectURL(file);
-      let param = new FormData(); //创建form对象
-      param.append("file", file, file.name); //通过append向form对象添加数据
-      var timer = setInterval(() => {
-        this.myFunc();
-      }, 30);
-      let config = {
-        headers: { "Content-Type": "multipart/form-data" },
-      }; //添加请求头
-      axios
-        .post(this.server_url + "/upload", param, config)
-        .then((response) => {
-          this.percentage = 100;
-          clearInterval(timer);
-          this.url_1 = response.data.image_url;
-          this.srcList.push(this.url_1);
-          this.url_2 = response.data.draw_url;
-          this.srcList1.push(this.url_2);
-          this.fullscreenLoading = false;
-          this.loading = false;
+	  const file = event.target.files[0];
+	  this.url_2 = URL.createObjectURL(file);
+	  this.uploaded=true;
+      // this.percentage = 0;
+      // this.dialogTableVisible = true;
+      // this.url_1 = "";
+      // this.url_2 = "";
+      // this.srcList = [];
+      // this.srcList1 = [];
+      // this.wait_return = "";
+      // this.wait_upload = "";
+      // this.feature_list = [];
+      // this.feat_list = [];
+      // this.fullscreenLoading = true;
+      // this.loading = true;
+      // this.showbutton = false;
+      // let file = e.target.files[0];
+      // this.url_1 = this.$options.methods.getObjectURL(file);
+      // let param = new FormData(); //创建form对象
+      // param.append("file", file, file.name); //通过append向form对象添加数据
+      // var timer = setInterval(() => {
+      //   this.myFunc();
+      // }, 30);
+      // let config = {
+      //   headers: { "Content-Type": "multipart/form-data" },
+      // }; //添加请求头
+      // axios
+      //   .post(this.server_url + "/upload", param, config)
+      //   .then((response) => {
+      //     this.percentage = 100;
+      //     clearInterval(timer);
+      //     this.url_1 = response.data.image_url;
+      //     this.srcList.push(this.url_1);
+      //     this.url_2 = response.data.draw_url;
+      //     this.srcList1.push(this.url_2);
+      //     this.fullscreenLoading = false;
+      //     this.loading = false;
 
-          this.feat_list = Object.keys(response.data.image_info);
+      //     this.feat_list = Object.keys(response.data.image_info);
 
-          for (var i = 0; i < this.feat_list.length; i++) {
-            response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
-            this.feature_list.push(response.data.image_info[this.feat_list[i]]);
-          }
+      //     for (var i = 0; i < this.feat_list.length; i++) {
+      //       response.data.image_info[this.feat_list[i]][2] = this.feat_list[i];
+      //       this.feature_list.push(response.data.image_info[this.feat_list[i]]);
+      //     }
 
-          this.feature_list.push(response.data.image_info);
-          this.feature_list_1 = this.feature_list[0];
-          this.dialogTableVisible = false;
-          this.percentage = 0;
-          this.notice1();
-        });
+      //     this.feature_list.push(response.data.image_info);
+      //     this.feature_list_1 = this.feature_list[0];
+      //     this.dialogTableVisible = false;
+      //     this.percentage = 0;
+      //     this.notice1();
+      //   });
+
     },
     myFunc() {
       if (this.percentage + 33 < 99) {
@@ -259,6 +280,7 @@ export default {
 	                });
 	},
 	modelSelectChange(){
+		this.uploaded=false;
 		this.url_1="";
 		this.url_2="";
 		this.showbutton=true;
@@ -432,10 +454,12 @@ export default {
 }
 
 .error {
-  margin: 100px auto;
-  width: 50%;
-  padding: 10px;
-  text-align: center;
+   display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 30vh;
+      width: 30vw;
 }
 
 .block-sidebar {

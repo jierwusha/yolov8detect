@@ -6,9 +6,11 @@ test pretrained model.
 Author: aiboy.wei@outlook.com .
 '''
 
-from data.load_data import CHARS, CHARS_DICT, LPRDataLoader
+
 from PIL import Image, ImageDraw, ImageFont
-from model.LPRNet import build_lprnet
+
+from core.video.video_process.data import LPRDataLoader, CHARS
+
 # import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -21,6 +23,9 @@ import torch
 import time
 import cv2
 import os
+
+from core.video.video_process.model import build_lprnet
+
 
 def get_parser():
     parser = argparse.ArgumentParser(description='parameters to train net')
