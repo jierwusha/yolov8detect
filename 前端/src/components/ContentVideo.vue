@@ -14,7 +14,7 @@
     </el-dialog>
 
     <div id="CT"  style="display: flex; ">
-		
+
 		<div class="setParam">  <!-- 参数配置框 -->
 			<el-card class="setParam-card"> 
 				<div style="font-weight: bold;color: #21B3B9;font-size: 20px;display: flex;align-items: center;justify-content: space-between;">
@@ -54,35 +54,18 @@
 		</div>
 		
       <div id="CT_image"><!-- 上传图片框 -->
-        <el-card id="CT_image_1"  class="box-card"  style=" border-radius: 8px; height: 360px;width: 60vw;margin-bottom: -30px;box-sizing: border-box;">
-		<div style="display: flex;justify-content: space-between;padding: 0 10vw;">
-			<div class="demo-image__preview1">
-			  <div v-loading="loading" element-loading-text="上传中"  element-loading-spinner="el-icon-loading" >
-			    <el-image :src="url_1" class="image_1" :preview-src-list="srcList" style="border-radius: 3px 3px 0 0" >
-			      <div slot="error">
-			        <div slot="placeholder" class="error">
-			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
-						<div >上传视频</div>
-						<input  ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
-			          </el-button>
-			        </div>
-			      </div>
-			    </el-image>
+        <el-card id="CT_image_1"  class="box-card"  style=" display:flex; 8px; height: 360px;width: 60vw;margin-bottom: -30px;box-sizing: border-box;justify-content: center;align-items: center;">
+		<div style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;">
+			<div class="demo-image__preview2" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;flex-direction: column;">
+			  <div  v-loading="loading"   element-loading-text="处理中,请耐心等待" element-loading-spinner="el-icon-loading" style="display: flex;justify-content: center;align-items: center; padding: 0 10vw;">
+					<video
+					    :src="smallVideo"
+						controls
+						style="background-color: transparent;height: 30vh;width: 30vw;"
+					></video>
 			  </div>
-			  <div class="img_info_1" style="border-radius: 0 0 5px 5px">
-			    <span style="color: white; letter-spacing: 6px">原始素材</span>
-			  </div>
-			</div>
-			<div class="demo-image__preview2">
-			  <div  v-loading="loading"   element-loading-text="处理中,请耐心等待" element-loading-spinner="el-icon-loading">
-			    <el-image  :src="url_2"  class="image_1" :preview-src-list="srcList1" style="border-radius: 3px 3px 0 0"  >
-			      <div slot="error">
-			        <div slot="placeholder" class="error">{{ wait_return }}</div>
-			      </div>
-			    </el-image>
-			  </div>
-			  <div class="img_info_1" style="border-radius: 0 0 5px 5px">
-			    <span style="color: white; letter-spacing: 4px">检测结果</span>
+			  <div class="img_info_1" style="border-radius: 0 0 5px 5px;width: 30vw;">
+			    <span style="color: white; letter-spacing: 4px;width: 30vw;">检测结果</span>
 			  </div>
 			</div>
 		</div>
@@ -90,6 +73,30 @@
       </div>
 	  
       
+            <div id="info_patient"  >
+              <!-- 卡片放置表格 -->
+              <el-card style="border-radius: 8px">
+                <div slot="header" class="clearfix">
+                  <span>检测目标</span>
+                  <el-button
+                    style="margin: 35px 35px 0 35px"
+                    type="primary"
+                    icon="el-icon-upload"
+                    class="download_bt"
+                    v-on:click="true_upload2"
+                  >
+                    选择视频
+                    <input
+                      ref="upload2"
+                      style="display: none"
+                      name="file"
+                      type="file"
+                      @change="update"
+                    />
+                  </el-button>
+                </div>
+              </el-card>
+            </div>
 	  
     </div>
   </div>
@@ -113,6 +120,7 @@ export default {
 	  value2:'',
 	  value3:'',
 	  isBrief:false,
+	  smallVideo: require('../assets/lung.mp4'),
       server_url: "http://127.0.0.1:5000",
       activeName: "first",
       active: 0,
@@ -355,7 +363,7 @@ export default {
 }
 
 .box-card {
-  width: 680px;
+  width: 100%;
   height: 200px;
   border-radius: 8px;
   margin-top: -20px;
@@ -398,7 +406,6 @@ export default {
 .image_1 {
   width: 275px;
   height: 260px;
-  background: #ffffff;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -563,7 +570,33 @@ div {
 .amislider{
 	z-index: 0;
 }
+.small-video-container::before {
+    content: "";
+    position: absolute;
+    top: -0.5vw;
+    left: -0.5vw;
+    width: calc(100% + 1vw);
+    height: calc(100% + 1vw);
+    background: linear-gradient(45deg, #f9f9f9, #e5e5e5);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
 
+.small-video-container:hover {
+    box-shadow: 0 0 2vw rgba(0, 0, 0, 0.4);
+}
+
+.small-video-container:hover::before {
+    opacity: 1;
+}
+
+.small-video-container video {
+    height: 30vh;
+	width:40vw;
+    display: flex;
+    background-color: #f2f2f2;
+}
 </style>
 
 

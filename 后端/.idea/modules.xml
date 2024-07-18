@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/aminos_identify.iml" filepath="$PROJECT_DIR$/.idea/aminos_identify.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/aminos_yolo.iml" filepath="$PROJECT_DIR$/.idea/aminos_yolo.iml" />
     </modules>
   </component>
 </project>

@@ -62,8 +62,7 @@
 			      <div slot="error">
 			        <div slot="placeholder" class="error">
 			          <el-button  v-show="showbutton" type="primary" icon="el-icon-upload"   class="download_bt" v-on:click="true_upload" >
-			            <div v-if="modelSelect==1">上传图像</div>
-						<div v-if="modelSelect==2">上传视频</div>
+			            <div>上传图像</div>
 			            <input v-if="modelSelect==1" ref="upload" style="display: none" name="file" accept="image/*" type="file" @change="update" />
 						<input v-if="modelSelect==2" ref="upload" style="display: none" name="file" accept="video/*" type="file" @change="update" />
 			          </el-button>

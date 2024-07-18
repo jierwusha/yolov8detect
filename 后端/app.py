@@ -1,30 +1,30 @@
 import datetime
 import mimetypes
 from flask import Flask, request, send_from_directory, make_response, jsonify, current_app
-from config import BaseConfig
 from flask_sqlalchemy import SQLAlchemy
 import os
 import shutil
 from datetime import timedelta
-from processor.AIDetector_pytorch import Detector
+from core.config.config import BaseConfig
+from core.img_process import img_process
+from core.video.video_process import mainProcess
 
 # app是Flask构建的实例
 app = Flask(__name__)
 # 添加配置文件
 app.config.from_object(BaseConfig)
 # 文件存储路径
-IMAGE_UPLOAD_FOLDER = 'uploads/image'
-VIDIO_UPLOAD_FOLDER = 'uploads/vidio'
 TMP_CT_FOLDER = './tmp/ct'
 TMP_DRAW_FOLDER = './tmp/draw'
-app.config['UPLOAD_FOLDER_IMAGES'] = IMAGE_UPLOAD_FOLDER
-app.config['UPLOAD_FOLDER_VIDEOS'] = VIDIO_UPLOAD_FOLDER
+MODEL_PATH = './weights'
+app.config['UPLOAD_FOLDER'] = TMP_CT_FOLDER
+app.config['SAVE_FOLDER'] = TMP_DRAW_FOLDER
+app.config['MODEL_PATH'] = MODEL_PATH
+# 允许的文件类型
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov'}
+# 模型存储路径
+
 # 确保目标目录存在
-if not os.path.exists(IMAGE_UPLOAD_FOLDER):
-    os.makedirs(IMAGE_UPLOAD_FOLDER)
-if not os.path.exists(VIDIO_UPLOAD_FOLDER):
-    os.makedirs(VIDIO_UPLOAD_FOLDER)
 if not os.path.exists(TMP_CT_FOLDER):
     os.makedirs(TMP_CT_FOLDER)
 if not os.path.exists(TMP_DRAW_FOLDER):
@@ -61,14 +61,61 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    with app.app_context():
-        current_app.model = Detector('code.pt')
+    # 获取JSON数据
+    data = request.json
+    # 获取特定参数
+    mode = data.get('mode')
+    conf = data.get('conf')
     if 'file' not in request.files:
         return jsonify({'status': 0,
                         'error': 'No file part'})
 
     file = request.files['file']
-    print(datetime.datetime.now(), file.filename)
+
+    if file and allowed_file(file.filename):
+        mime_type, _ = mimetypes.guess_type(file.filename)
+        if mime_type is None:
+            return jsonify({'status': 0,
+                            'error': 'Unknown file type'})
+        if mime_type.startswith('image'):
+            folder = app.config['UPLOAD_FOLDER']
+        else:
+            return jsonify({'status': 0,
+                            'error': 'Unsupported file type'})
+
+        src_path = os.path.join(folder, file.filename)
+        save_path = os.path.join(app.config['SAVE_FOLDER'], file.filename)
+        if mode == 'code':
+            model_path = os.path.join(app.config['MODEL_PATH'], 'code.pt')
+        elif mode == 'car':
+            model_path = os.path.join(app.config['MODEL_PATH'], 'car.pt')
+        else:
+            model_path = os.path.join(app.config['MODEL_PATH'], 'yolo.pt')
+        file.save(src_path)
+
+        # 调用核心处理功能
+        image_info = img_process.img_process(conf, model_path, src_path, save_path)
+
+        return jsonify({'status': 1,
+                        'image_url': f'http://127.0.0.1:5000/{src_path}',
+                        'draw_url': f'http://127.0.0.1:5000/{save_path}',
+                        'image_info': image_info})
+
+    return jsonify({'status': 0, 'error': 'File type not allowed'})
+
+
+@app.route('/upload_video', methods=['POST'])
+def upload_video():
+    # 获取JSON数据
+    data = request.json
+    # 获取特定参数
+    mode = data.get('mode')
+    conf = data.get('conf')
+    if 'file' not in request.files:
+        return jsonify({'status': 0,
+                        'error': 'No file part'})
+
+    file = request.files['file']
 
     if file and allowed_file(file.filename):
         mime_type, _ = mimetypes.guess_type(file.filename)
@@ -76,30 +123,28 @@ def upload_file():
             return jsonify({'status': 0,
                             'error': 'Unknown file type'})
 
-        if mime_type.startswith('image'):
-            folder = app.config['UPLOAD_FOLDER_IMAGES']
-        elif mime_type.startswith('video'):
-            folder = app.config['UPLOAD_FOLDER_VIDEOS']
+        if mime_type.startswith('video'):
+            folder = app.config['UPLOAD_FOLDER']
         else:
             return jsonify({'status': 0,
                             'error': 'Unsupported file type'})
 
         src_path = os.path.join(folder, file.filename)
-        file.save(src_path)
-
-        # 将文件复制到临时目录
-        shutil.copy(src_path, TMP_CT_FOLDER)
-        image_path = os.path.join(TMP_CT_FOLDER, file.filename)
-
-        # 调用核心处理功能
-
-        output_image_path = os.path.join(TMP_DRAW_FOLDER, 'results.jpg')
-        image_info = current_app.model.detect(image_path, output_image_path)
+        save_path = os.path.join(app.config['SAVE_FOLDER'], file.filename)
+        if mode == 'code':
+            model_path = os.path.join(app.config['MODEL_PATH'], 'code.pt')
+        elif mode == 'car':
+            # 调用核心处理功能
+            YOLOmodelPath = os.path.join(app.config['MODEL_PATH'], 'video.pt')
+            LPRNetModelPath = os.path.join(app.config['MODEL_PATH'], 'lprnet_best.pth')
+            mainProcess.mainProcess(YOLOmodelPath, LPRNetModelPath, src_path, save_path)
+        else:
+            model_path = os.path.join(app.config['MODEL_PATH'], 'yolo.pt')
 
         return jsonify({'status': 1,
-                        'image_url': f'http://127.0.0.1:5000/tmp/ct/test1.jpg',
-                        'draw_url': f'http://127.0.0.1:5000/tmp/draw/results.jpg',
-                        'image_info': image_info})
+                        'video_url': f'http://127.0.0.1:5000/{src_path}',
+                        'draw_url': f'http://127.0.0.1:5000/{save_path}',
+                        })
 
     return jsonify({'status': 0, 'error': 'File type not allowed'})
 
