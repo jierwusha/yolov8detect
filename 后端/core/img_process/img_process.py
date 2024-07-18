@@ -55,9 +55,9 @@ def img_process(conf, model_path, image_path, save_path):
     resized_img = cv2.resize(orig_img, (new_width, new_height))
 
     # 执行推理
-    results = model(resized_img, conf)
+    results = model(resized_img, conf=conf)
 
-    # 保存裁剪后的图像到指定目录
+    results = list(results)
     r = results[0]
     boxes = r.boxes
     names = r.names

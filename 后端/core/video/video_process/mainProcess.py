@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 from collections import Counter
 
 import cv2
@@ -17,10 +18,11 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 import Levenshtein
 
+
 def mainProcess(YOLOmodelPath, LPRNetModelPath, dataPath, savePath):
     #初始化
     #加载字体
-    font = ImageFont.truetype('SourceHanSansCN-Heavy.otf', 20)
+    font = ImageFont.truetype('./core/video/video_process/SourceHanSansCN-Heavy.otf', 20)
     # 导入模型
     model = YOLO(YOLOmodelPath)
     print("导入模型成功:" + YOLOmodelPath)
@@ -49,7 +51,6 @@ def mainProcess(YOLOmodelPath, LPRNetModelPath, dataPath, savePath):
     else:
         savePath = os.path.join(savePath, base_name + '_检测结果.png')
 
-
     # LPRNet模型加载
     if args.pretrained_model:
         lprnet.load_state_dict(torch.load(LPRNetModelPath))
@@ -61,6 +62,7 @@ def mainProcess(YOLOmodelPath, LPRNetModelPath, dataPath, savePath):
     # 推理
     results = model.predict(dataPath, stream=True, conf=0.1)
     for result in results:
+        start_time = time.time()
         # 将图像分割
         cimages = crop_boxes_from_image(result)
         # 使用lprnet处理
@@ -74,16 +76,17 @@ def mainProcess(YOLOmodelPath, LPRNetModelPath, dataPath, savePath):
             print(lb)
             lbs.append(lb)
         fimg = draw_boxes(result, lbs, font)
-        cv2.imshow('result', fimg)
-        cv2.waitKey(1)
+        end_time = time.time()
+        print(str(end_time - start_time))
         # 重新将图片合成为视频
         if isVideo:
             video.write(fimg)
             print("文件已保存" + savePath)
+            return True
         else:
-            cv2.imwrite(savePath, fimg)
+            # cv2.imwrite(savePath, fimg)
             print("文件已保存" + savePath)
-
+            return lbs[0]
     if isVideo:
         video.release()
         cap.release()
@@ -137,100 +140,113 @@ def draw_boxes(result, labels, font):
 
 
 def countCar(YOLOmodelPath, LPRNetModelPath, dataPath, savePath):
-        model = YOLO(YOLOmodelPath)
-        cap = cv2.VideoCapture(dataPath)
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    model = YOLO(YOLOmodelPath)
+    cap = cv2.VideoCapture(dataPath)
+    assert cap.isOpened(), "Error reading video file"
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    frame_interval = 1 / fps
 
-        # Define line points
-        line_points = [(0, 400), (1080, 400)]
-        region_points = [(20, 400), (1080, 404), (1080, 360), (20, 360)]
 
-        # Video writer
-        video_writer = cv2.VideoWriter(savePath + os.path.splitext(os.path.basename(dataPath))[0] + '_检测结果.mp4', cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    # Define line points
+    line_points = [(0, 400), (1080, 400)]
+    region_points = [(0, 500), (10800, 500), (10800, 600), (0, 600)]
 
-        # Init Object Counter
-        counter = solutions.ObjectCounter(
-            view_img=True,
-            reg_pts=region_points,
-            classes_names=model.names,
-            draw_tracks=True,
-            line_thickness=2,
-            region_thickness=5,
-            view_out_counts=False
+    # Video writer
+    video_writer = cv2.VideoWriter(savePath, cv2.VideoWriter_fourcc(*"VP90"), fps, (w, h))
 
-        )
+    # Init Object Counter
+    counter = solutions.ObjectCounter(
+        view_img=True,
+        reg_pts=region_points,
+        classes_names=model.names,
+        draw_tracks=True,
+        line_thickness=2,
+        region_thickness=5,
+        view_out_counts=False
 
-        #LPRNet初始化
-        font = ImageFont.truetype('SourceHanSansCN-Heavy.otf', 20)
-        # LPRNet网络构建
-        args = get_parser()
-        lprnet = build_lprnet(lpr_max_len=args.lpr_max_len, phase=args.phase_train, class_num=len(CHARS),
-                              dropout_rate=args.dropout_rate)
-        device = torch.device("cuda:0" if args.cuda else "cpu")
-        lprnet.to(device)
-        print("成功构建网络")
-        # LPRNet模型加载
-        if args.pretrained_model:
-            lprnet.load_state_dict(torch.load(LPRNetModelPath))
-            print("加载模型成功:" + args.pretrained_model)
-        else:
-            print("[Error] 无法找到模型：" + args.pretrained_model)
-            return False
+    )
 
-        # 车牌识别结果存储
-        results_list = []
+    #LPRNet初始化
+    font = ImageFont.truetype('./core/video/video_process/SourceHanSansCN-Heavy.otf', 20)
+    # LPRNet网络构建
+    args = get_parser()
+    lprnet = build_lprnet(lpr_max_len=args.lpr_max_len, phase=args.phase_train, class_num=len(CHARS),
+                          dropout_rate=args.dropout_rate)
+    device = torch.device("cuda:0" if args.cuda else "cpu")
+    lprnet.to(device)
+    print("成功构建网络")
+    # LPRNet模型加载
+    if args.pretrained_model:
+        lprnet.load_state_dict(torch.load(LPRNetModelPath))
+        print("加载模型成功:" + args.pretrained_model)
+    else:
+        print("[Error] 无法找到模型：" + args.pretrained_model)
+        return False
 
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            tracks = model.track(im0, persist=True, show=False)
-            result = tracks[0]
-            # 将图像分割
-            cimages = crop_boxes_from_image(result)
-            # 使用lprnet处理
-            labels = run_LPRNet.Predict(lprnet, cimages, args)
-            # 进行标记
-            lbs = []
-            for label in labels:
-                lb = ""
-                for i in label:
-                    lb += CHARS[i]
-                print(lb)
-                lbs.append(lb)
-            #将结果存入结果数组
-            if result.boxes.id is not None:
-                for lb, id in zip(lbs, result.boxes.id):
-                    isSaved = False
-                    point = None
-                    # 检查是否已有id
-                    for num, ls in results_list:
-                        if num == id:
-                            isSaved = True
-                            point = (num, ls)
-                    # 若存在，则加入其中
-                    if isSaved:
-                        point[1].add(lb)
-                    # 若不存在，则新建项
-                    else:
-                        results_list.append((id, {lb}))
-            fimg = draw_boxes(result, lbs, font)
-            im0 = counter.start_counting(fimg, tracks)
-            if tracks[0].boxes.id is not None:
-                print(tracks[0].boxes.id.int().cpu())
-            video_writer.write(fimg)
+    # 车牌识别结果存储
+    results_list = []
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        result_list = []
-        for num, lbs in results_list:
-            result_list.append((num, get_most_frequent_string(lbs)))
-        print(result_list)
-        print(results_list)
+    frame_number = 0
+    while cap.isOpened():
+        current_time = frame_number * frame_interval
+        success, im0 = cap.read()
+        if not success:
+            print("Video frame is empty or video processing has been successfully completed.")
+            break
+        tracks = model.track(im0, persist=True, show=False)
+        result = tracks[0]
+        # 将图像分割
+        cimages = crop_boxes_from_image(result)
+        # 使用lprnet处理
+        labels = run_LPRNet.Predict(lprnet, cimages, args)
+        # 进行标记
+        lbs = []
+        for label in labels:
+            lb = ""
+            for i in label:
+                lb += CHARS[i]
+            print(lb)
+            lbs.append(lb)
+        #将结果存入结果数组
+        if result.boxes.id is not None:
+            for lb, id in zip(lbs, result.boxes.id):
+                isSaved = False
+                point = None
+                # 检查是否已有id
+                for num, ls, time in results_list:
+                    if num == id:
+                        isSaved = True
+                        point = (num, ls)
+                # 若存在，则加入其中
+                if isSaved:
+                    point[1].add(lb)
+                # 若不存在，则新建项
+                else:
+                    results_list.append([id, {lb}, seconds_to_minutes_seconds(current_time)])
+        fimg = draw_boxes(result, lbs, font)
+        im0 = counter.start_counting(fimg, tracks)
+        if tracks[0].boxes.id is not None:
+            print(tracks[0].boxes.id.int().cpu())
+        video_writer.write(fimg)
+        frame_number += 1
 
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()
+    result_list = []
+    id = 0
+    for num, lbs, time in results_list:
+        result_list.append([id, get_most_frequent_string(lbs), time])
+        id += 1
+    print(result_list)
+    print(results_list)
+    return result_list, counter.in_counts
+
+def seconds_to_minutes_seconds(seconds):
+    minutes = int(seconds // 60)
+    remaining_seconds = int(seconds % 60)
+    return f'{minutes:02}:{remaining_seconds:02}'
 
 def get_most_frequent_string(string_list):
     if not string_list:
@@ -250,3 +266,23 @@ def get_most_frequent_string(string_list):
 
     return max(candidates, key=lambda s: similarity_score(s, string_list))
 
+def Ptest(YOLOmodelPath, LPRNetModelPath, dataPath, savePath):
+    test_datas = os.listdir(dataPath)
+    total = len(test_datas)
+    correct = 0
+    for item in test_datas:
+        lb = os.path.splitext(os.path.basename(item))[0]
+        plb = mainProcess(YOLOmodelPath, LPRNetModelPath,dataPath + '\\' + item, savePath)
+        if lb == plb:
+            correct += 1
+    print(total)
+    print(correct)
+    print(correct/total)
+
+if __name__ == "__main__":
+    # 用于图片、视频识别，若是图片则返回识别结果，若是视频则返回“True”
+    # mainProcess('..\\runs\\detect\\train14\\weights\\best.pt', 'lprnet_best.pth', '', 'outputs')
+    # 仅用于视频，返回车牌列表和计数结果
+    countCar('..\\runs\\detect\\train14\\weights\\best.pt', 'lprnet_best.pth', '..\\3.mp4', '.\\')
+    # 数据集测试
+    # Ptest('E:\\Desktop\\Yolo\\runs\\detect\\train14\\weights\\best.pt', 'lprnet_best.pth', 'E:\Desktop\Yolo\ccpdDataSets\jiance', 'outputs')
